@@ -25,7 +25,7 @@ public class Client extends Server {
                 if (data.contains("SVR GAME MOVE")) moves.push("{" + data.split("\\{")[1]);
                 if (data.contains("WIN") | data.contains("DRAW") | data.contains("LOSS")) score.push(data);
                 if (data.contains("SVR GAME CHALLENGE")) challenges.push("{" + data.split("\\{")[1]);
-                System.out.println(data); // test
+                // System.out.println(data); // test
             }));
         }
         return client;

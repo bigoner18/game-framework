@@ -1,18 +1,16 @@
 package controllers;
 
+import controllers.simpleGame.SimpleGameController;
 import controllers.simpleGame.TicTacToeController;
 import controllers.simpleGame.ReversiController;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import models.Player;
+import models.*;
 import views.ReversiView;
 import javafx.stage.Stage;
 import lib.Parser;
-import models.Client;
-import models.ClientCommands;
-import models.Game;
 import views.GameLobbyView;
 import views.TicTacToeView;
 
@@ -58,12 +56,18 @@ public class GameStartController {
 
     public void createTicTacToe() {
         HashMap gameInfo = getGameInfo();
-        new TicTacToeController(new Game(3, 3), stage, new TicTacToeView(), gameInfo);
+        TicTacToeController ttt = new TicTacToeController(new Game(3, 3), stage, new TicTacToeView(), gameInfo);
+        if (Settings.getInstance().getAI()) {
+            new AIController(ttt);
+        }
     }
 
     public void createReversi() {
 	    HashMap gameInfo = getGameInfo();
-	    new ReversiController(new Game(8, 8), stage, new ReversiView(), gameInfo);
+	    ReversiController reversi = new ReversiController(new Game(3, 3), stage, new ReversiView(), gameInfo);
+        if (Settings.getInstance().getAI()) {
+            new AIController(reversi);
+        }
     }
 
     private void updateListView() {

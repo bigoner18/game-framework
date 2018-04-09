@@ -5,8 +5,9 @@ public class Settings {
     
     private static Settings singleton;
     
-    public String IP;
-    public int port;
+    private String IP;
+    private int port;
+    private boolean AI = false;
     
     private Settings(){
 	this.IP = "127.0.0.1";
@@ -34,5 +35,13 @@ public class Settings {
     
     public int getPort(){
 	return port;
-    }    
+    }
+
+    public boolean getAI() {
+        return AI;
+    }
+
+    public void setAI(boolean AI) {
+        this.AI = AI;
+    }
 }

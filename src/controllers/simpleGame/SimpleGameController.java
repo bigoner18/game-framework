@@ -41,17 +41,22 @@ public abstract class SimpleGameController {
         primaryStage.setScene(this.gameView);
     }
 
+    public void move(int i) {
+        gameModel.updatePlayField(i);
+        ClientCommands.sendMove(i);
+        gameModel.incrementTurn();
+        gameView.setTurn(gameModel.getOpponent());
+        gameModel.setYourTurn(false);
+        updateGame();
+
+    }
+
     protected void setOnClick(int i) {
         Rectangle r = (Rectangle) gameView.getGrid().getChildren().get(i);
         r.setOnMouseClicked(e -> {
             try {
                 //System.out.println(ClientCommands.sendMove(i));
-                gameModel.updatePlayField(i);
-                ClientCommands.sendMove(i);
-                gameModel.incrementTurn();
-                gameView.setTurn(gameModel.getOpponent());
-                gameModel.setYourTurn(false);
-                updateGame();
+                move(i);
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
@@ -81,6 +86,10 @@ public abstract class SimpleGameController {
             }
         }
         return grid;
+    }
+
+    public Game getGameModel() {
+        return gameModel;
     }
 
     public void updateGame() {

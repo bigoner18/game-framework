@@ -20,7 +20,7 @@ public class LoginController {
                 Label error = new Label(response);
                 view.getPane().add(error, 0, 3);
             } else {
-                new GameSelectController(primaryStage);
+                new ModeController(primaryStage);
                 primaryStage.show();
             }
         });

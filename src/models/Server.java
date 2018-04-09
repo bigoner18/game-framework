@@ -22,7 +22,7 @@ public abstract class Server {
 
     public void send(String data) {
         try {
-            System.out.println("C: " + data);
+            // System.out.println("C: " + data);
             connThread.out.println(data);
         } catch (Exception e) {
             System.out.println("Zenden wil niet..");
