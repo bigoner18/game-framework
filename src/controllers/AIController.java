@@ -2,6 +2,7 @@ package controllers;
 
 import controllers.simpleGame.SimpleGameController;
 import javafx.application.Platform;
+import lib.GameStateNode;
 import models.Game;
 
 public class AIController extends Thread{
@@ -19,14 +20,28 @@ public class AIController extends Thread{
         this.game = game;
     }
 
+    public void calculateOptions(int[] playfield) {
+        boolean tempTurn = game.isYourTurn();
+        int turnCounter = game.getTurn();
+        GameStateNode currentNode = new GameStateNode(playfield);
+
+        for (int x = 0; x < playfield.length; x++) {
+            if (gameController.legalMove(playfield[x], currentNode.getPlayfield())) {
+                int[] temp = playfield;
+                temp[x] = (tempTurn) ? 1 : 2;
+                currentNode.addNode(x, new GameStateNode(temp));
+            }
+        }
+
+        System.out.println(currentNode);
+    }
+
     @Override
     public void run() {
         while (playing) {
-            System.out.println(game.isYourTurn());
             if (game.isYourTurn()) {
-                System.out.println("test");
+                calculateOptions(game.getPlayField());
                 for (int i = 0; i < game.getPlayField().length; i++) {
-                    System.out.println(i);
                     if (game.getPlayField()[i] == 0) {
                         int x = i;
                         Platform.runLater(() -> {

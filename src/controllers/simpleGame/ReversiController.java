@@ -20,9 +20,9 @@ public ReversiController(Game model, Stage primaryStage, GameView gameView, Hash
     }
 
    public boolean legalMove(int index) {
-        if (super.legalMove(index) && nextToEnemy(index))
+        //if (super.legalMove(index) && nextToEnemy(index))
             return true;
-        return false;
+        //return false;
     }
 
     public void updateGame() {

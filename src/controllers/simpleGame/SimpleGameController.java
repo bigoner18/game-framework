@@ -116,8 +116,8 @@ public abstract class SimpleGameController {
         });
     }
 
-    protected boolean legalMove(int index) {
-        return gameModel.isYourTurn() && gameModel.getPlayField()[index] == 0;
+    public boolean legalMove(int index, int[] playfield) {
+        return gameModel.isYourTurn() && playfield[index] == 0;
     }
 
     class MoveListener implements Runnable {

@@ -16,6 +16,11 @@ import views.TicTacToeView;
 
 import java.util.*;
 
+/**
+ * Scrollbar in de lobby
+ * timeout op de alertbox na de game
+ */
+
 public class GameStartController {
     private GameLobbyView view;
     private Stage stage;

@@ -15,8 +15,8 @@ public class TicTacToeController extends SimpleGameController {
     }
 
     @Override
-    public boolean legalMove(int index) {
-        return super.legalMove(index);
+    public boolean legalMove(int index, int[] playfield) {
+        return super.legalMove(index, playfield);
     }
 
     @Override
@@ -24,7 +24,7 @@ public class TicTacToeController extends SimpleGameController {
         super.updateGame();
 
         for (int i = 0; i < gameView.getGrid().getChildren().size(); i++) {
-            if (legalMove(i)) {
+            if (legalMove(i, gameModel.getPlayField())) {
                 setOnClick(i);
             }
         }
