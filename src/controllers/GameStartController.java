@@ -4,6 +4,8 @@ import controllers.simpleGame.TicTacToeController;
 import controllers.simpleGame.ReversiController;
 
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import models.Player;
 import views.ReversiView;
 import javafx.stage.Stage;
@@ -71,9 +73,30 @@ public class GameStartController {
         String result = ClientCommands.getPlayers();
         // Fetch the names from the getPlayers command
         String[] names = result.substring(16, result.length() - 2).split(", ");
+
+
+
         for (String name: names) {
-            view.getList().add(name.replace("\"", "") + "\n");
+            name = name.replace("\"", "");
+            if (!Player.getInstance().getName().equals(name)) {
+                view.getList().add(name + "\n");
+            }
         }
+    }
+
+    public void challengeAlert() {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            HashMap info = Parser.parse(Client.getInstance().getChallenges());
+            //String response = Client.getInstance().getChallenges().pop();
+            alert.setTitle(info.get("CHALLENGER").toString() + " challenges you");
+            alert.setHeaderText(info.get("CHALLENGER").toString() + " challenges you for " + info.get("GAMETYPE"));
+            alert.setContentText("If you want to accept click ok");
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == ButtonType.OK){
+                Client.getInstance().send("challenge accept " + info.get("CHALLENGENUMBER"));
+            }
+        });
     }
 
     class LobbyListener implements Runnable {
@@ -94,6 +117,11 @@ public class GameStartController {
                         }
                     } catch (EmptyStackException e) {}
                 });
+
+                if (!Client.getInstance().getChallenges().isEmpty()) {
+                    challengeAlert();
+                }
+
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
