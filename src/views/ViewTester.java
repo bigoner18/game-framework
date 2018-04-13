@@ -18,5 +18,7 @@ public class ViewTester extends Application {
         primaryStage.setTitle("Choose a game"); // Set the stage title
         primaryStage.setScene(scene); // Place the scene in the stage
         primaryStage.show(); // Display the stage
+
+        System.out.println("{" + "SVR GAME MOVE {PLAYER: \"1\", MOVE: \"19\", DETAILS: \"\"}".split("\\{")[1]);
     }
 }

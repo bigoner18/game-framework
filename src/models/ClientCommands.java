@@ -41,11 +41,11 @@ public abstract class ClientCommands {
         if (Client.getInstance().getErorrs().isEmpty()) {
             return "true";
         }
-        else return (String) Client.getInstance().getErorrs().pop();
+        else return Client.getInstance().getErorrs().pop();
     }
 
     public static String getInfo() {
-        while (Client.getInstance().getInfo().empty()) {}
+        while (Client.getInstance().getInfo().size() == 0) {}
         String message = Client.getInstance().getInfo().pop();
         System.out.println("S: " + message);
         return message;

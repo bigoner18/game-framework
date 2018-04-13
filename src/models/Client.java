@@ -1,5 +1,6 @@
 package models;
 
+import java.util.LinkedList;
 import java.util.Stack;
 import java.util.function.Consumer;
 import controllers.*;
@@ -8,26 +9,25 @@ public class Client extends Server {
     private static Client client;
     private String ip;
     private int port;
-    private static Stack<String> errors = new Stack<>();
-    private static Stack<String> info = new Stack<>();
-    private static Stack<String> match = new Stack<>();
-    private static Stack<String> moves = new Stack<>();
-    private static Stack<String> challenge = new Stack<>();
-    private static Stack<String> score = new Stack<>();
+    private static LinkedList<String> errors = new LinkedList<>();
+    private static LinkedList<String> info = new LinkedList<>();
+    private static LinkedList<String> match = new LinkedList<>();
+    private static LinkedList<String> moves = new LinkedList<>();
+    private static LinkedList<String> turns = new LinkedList<>();
+    private static LinkedList<String> challenge = new LinkedList<>();
+    private static LinkedList<String> score = new LinkedList<>();
 
 
-    public static Client getInstance() {
+    public synchronized static Client getInstance() {
         if (client == null) {
             client = new Client("127.0.0.1", 7789, (data -> {
-                if (data.contains("ERR")) errors.push(data);
-                if (data.contains("SVR")) info.push(data);
-                if (data.contains("SVR GAME MATCH")) match.push("{" + data.split("\\{")[1]);
-                if (data.contains("SVR GAME MOVE")) {
-                    moves.push("{" + data.split("\\{")[1]);
-                    //System.out.println(data);
-                }
-        		if (data.contains("SVR GAME CHALLENGE")) challenge.push("{" + data.split("\\{")[1]);
-                if (data.contains("WIN") | data.contains("DRAW") | data.contains("LOSS")) score.push(data);
+                if (data.contains("ERR")) errors.add(data);
+                if (data.contains("SVR")) info.add(data);
+                if (data.contains("SVR GAME MATCH")) match.add("{" + data.split("\\{")[1]);
+                if (data.contains("SVR GAME MOVE")) moves.add("{" + data.split("\\{")[1]);
+                if (data.contains("SVR GAME YOURTURN")) turns.add(data);
+        		if (data.contains("SVR GAME CHALLENGE")) challenge.add("{" + data.split("\\{")[1]);
+                if (data.contains("WIN") | data.contains("DRAW") | data.contains("LOSS")) score.add(data);
                 System.out.println(data); // test
             }));
         }
@@ -40,22 +40,26 @@ public class Client extends Server {
         this.port = port;
     }
 
-    public Stack getErorrs() {
+    public LinkedList<String> getErorrs() {
         return errors;
     }
 
-    public Stack<String> getInfo() {
+    public LinkedList<String> getInfo() {
         return info;
     }
 
-    public Stack<String> getMatch() {
+    public LinkedList<String> getMatch() {
         return match;
     }
 
-    public Stack<String> getMoves() { return moves; }
+    public LinkedList<String> getMoves() { return moves; }
     
-    public Stack<String> getChallenge() { return challenge; }
+    public LinkedList<String> getChallenge() { return challenge; }
 
-    public Stack<String> getScore() { return score; }
+    public LinkedList<String> getScore() { return score; }
+
+    public static LinkedList<String> getTurns() {
+        return turns;
+    }
 }
 

@@ -27,6 +27,7 @@ public abstract class SimpleGameController {
     protected Stage primaryStage;
     protected static Color startColor;
     protected static Color oponentColor;
+    protected Circle[] gridCircles;
     List<Integer> occupied = new ArrayList<>();
     List<Integer> possMoves = new ArrayList<>();
     Set<Integer> check = new HashSet<>();
@@ -36,29 +37,27 @@ public abstract class SimpleGameController {
         gameModel.setOpponent((String) info.get("OPPONENT")); // Misschien handig voor in de toekomst, kan anders wel weg..
         gameView.setOpponent((String) info.get("OPPONENT"));
 
-        if (info.get("PLAYERTOMOVE").equals(Player.getInstance().getName()))
-            gameModel.setYourTurn(true);
-        else
-            gameModel.setYourTurn(false);
+        if (info.get("PLAYERTOMOVE").equals(Player.getInstance().getName())) gameModel.setYourTurn(true);
+        else gameModel.setYourTurn(false);
 
         this.gameView = gameView;
         this.primaryStage = primaryStage;
         primaryStage.setScene(this.gameView);
 	
-	if(!gameModel.isYourTurn()){
-	    startColor = Color.WHITE;
-	    oponentColor = Color.BLACK;
-	} else {
-	    startColor = Color.BLACK;
-	    oponentColor = Color.WHITE;
-	}
-	
-	GameView.setStartColor(startColor);
-	GameView.setOpponentColor(oponentColor);
+        if(!gameModel.isYourTurn()){
+            startColor = Color.WHITE;
+            oponentColor = Color.BLACK;
+        } else {
+            startColor = Color.BLACK;
+            oponentColor = Color.WHITE;
+        }
+
+        GameView.setStartColor(startColor);
+        GameView.setOpponentColor(oponentColor);
     }
 
     protected void setOnClick(int i) {
-        Rectangle r = (Rectangle) gameView.getGrid().getChildren().get(i);
+        Circle r = (Circle) gameView.getGrid().getChildren().get(i);
 
         if (!occupied.contains(i)) {
             r.setFill(Color.YELLOW);
@@ -85,28 +84,30 @@ public abstract class SimpleGameController {
 
     protected GridPane generateGrid(int[] playField) {
         GridPane grid = new GridPane();
+        gridCircles = new Circle[gameModel.getGridWidth() * gameModel.getGridHeight()];
         for (int y = 0; y < gameModel.getGridHeight(); y++) {
             for (int x = 0; x < gameModel.getGridWidth(); x++) {
                 int index = (y * gameModel.getGridWidth()) + x;
                 Rectangle r = new Rectangle(50, 50);
-		Circle c = new Circle(25);
+		        Circle c = new Circle(25);
+                gridCircles[(y * gameModel.getGridWidth()) + x] = c;
                 switch (playField[index]) {
                     case 0:
                         r.setFill(Color.GREEN);
-			c.setFill(Color.TRANSPARENT);
+			            c.setFill(Color.TRANSPARENT);
                         break;
                     case 1:
                         r.setFill(Color.GREEN);
-			c.setFill(oponentColor);
+			            c.setFill(oponentColor);
                         break;
                     case 2:
                         r.setFill(Color.GREEN);
-			c.setFill(startColor);
+			            c.setFill(startColor);
                         break;
                 }
                 r.setStroke(Color.RED);
                 grid.add(r, x, y);
-		grid.add(c, x, y);
+		        grid.add(c, x, y);
             }
         }
         return grid;
@@ -137,7 +138,7 @@ public abstract class SimpleGameController {
     }
 
     protected boolean legalMove(int index) {
-        return gameModel.isYourTurn() && gameModel.getPlayField()[index] == 0;
+        return gameModel.getPlayField()[index] == 0;
     }
 
     class MoveListener implements Runnable {
@@ -146,7 +147,7 @@ public abstract class SimpleGameController {
         @Override
         public void run() {
             while(running) {
-                if (!Client.getInstance().getMoves().empty()) {
+                if (Client.getInstance().getMoves().size() > 0) {
                     HashMap info = Parser.parse(Client.getInstance().getMoves());
                     if (!info.get("PLAYER").equals(Player.getInstance().getName())) {
                         // Laat de AI op de movestack pushen...

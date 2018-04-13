@@ -63,7 +63,6 @@ public class GameView extends Scene {
     }
     
     public static void setOpponentColor(Color color){
-	System.out.println("hallo");
 	if(color == Color.WHITE){
 	    oponentColor.setText("White");
 	} else {

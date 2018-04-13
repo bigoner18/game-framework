@@ -2,10 +2,12 @@ package controllers.simpleGame;
 
 import javafx.application.Platform;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
 import java.util.*;
 
+import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 import lib.Parser;
 import models.Client;
@@ -15,43 +17,36 @@ import models.Player;
 import views.GameView;
 
 public class ReversiController extends SimpleGameController {
-    //private Game gameModel;
     int[] directions = {-9, -8, -7, -1, 1, 7, 8, 9};
     int[] leftDir = {-9, -1, 7, -8, 8};
     int[] rightDir = {-7, 1, 9, -8, 8};
-    int[] startPos = {27, 36, 35, 28};
-    private int opponentNumber;
-    private ArrayList<Integer> moves = new ArrayList<>();
-    private HashMap<Integer, List> save = new HashMap<>();
+    private List<Integer> occupied = new ArrayList<>();
 
     public ReversiController(Game model, Stage primaryStage, GameView gameView, HashMap info) {
         super(model, primaryStage, gameView, info);
-       if (!gameModel.isYourTurn()) {
+        if (!gameModel.isYourTurn()) {
             gameModel.setPlayFieldAtIndex(27, 1);
-            occupied.add(27);
             gameModel.setPlayFieldAtIndex(28, 2);
-            occupied.add(28);
             gameModel.setPlayFieldAtIndex(35, 2);
-            occupied.add(35);
             gameModel.setPlayFieldAtIndex(36, 1);
-            occupied.add(36);
         } else {
             gameModel.setPlayFieldAtIndex(27, 2);
-            occupied.add(27);
             gameModel.setPlayFieldAtIndex(28, 1);
-            occupied.add(28);
             gameModel.setPlayFieldAtIndex(35, 1);
-            occupied.add(35);
             gameModel.setPlayFieldAtIndex(36, 2);
-            occupied.add(36);
         }
-        new Thread(new MoveListener()).start();
+        occupied.add(27);
+        occupied.add(28);
+        occupied.add(35);
+        occupied.add(36);
+
         primaryStage.setTitle("Reversi!");
         updateGame();
+        new Thread(new MoveListener()).start();
+
     }
 
     public List getMovesList(int index) {
-        //System.out.println("Dit is de waarde: " + index);
         List toChange = new ArrayList();
         if (super.legalMove(index)) {
             for (int i : directions) {
@@ -76,69 +71,35 @@ public class ReversiController extends SimpleGameController {
     }
 
 
-    protected void setOnClick(int i, List toChange) {
-        Rectangle r = (Rectangle) gameView.getGrid().getChildren().get(i);
-        if (!occupied.contains(i)) {
-            r.setFill(Color.YELLOW);
-        }
-
+    protected void setOnClick(int i) {
+        Circle r = gridCircles[i];
+        if (!occupied.contains(i)) r.setFill(Color.YELLOW);
         r.setOnMouseClicked(e -> {
-            try {
-                ClientCommands.sendMove(i);
-                updateGameState(i, toChange);
-                gameView.setTurn(gameModel.getOpponent());
-                gameModel.setYourTurn(false);
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-            r.setDisable(true);
+            Client.getInstance().getMoves().add("{PLAYER: \"" + Player.getInstance().getName() + "\", MOVE: \"" + i + "\", DETAILS: \"\"}");
+            ClientCommands.sendMove(i);
+            gameModel.setYourTurn(false);
         });
-    }
-
-    public void updateGameState(int i, List toChange) {
-        gameModel.updatePlayField(i);
-        gameModel.updatePlayField(toChange);
-        gameModel.incrementTurn();
-        occupied.add(i);
-        gameModel.setYourTurn(true);
-        updateGame();
-        possMoves.clear();
-    }
-
-    public void updateGameStateAI(int i, List toChange) {
-        System.out.println("Test");
-
-        ClientCommands.sendMove(i);
-        updateGameState(i, toChange);
-        gameView.setTurn(gameModel.getOpponent());
-        gameModel.setYourTurn(false);
     }
 
     public Set getPossibleList() {
         Set check = new HashSet();
         for (int item : occupied) {
-            if (item % 8 == 0) {
-                for (int i : rightDir) {
-                    try {
-                        if (gameModel.getPlayField()[item + i] == 0) check.add(item + i);
-                    } catch (ArrayIndexOutOfBoundsException e) {}
-                }
-            } else if (item + 1 % 8 == 0) {
-                for (int i : leftDir) {
-                    try {
-                        if (gameModel.getPlayField()[item + i] == 0) check.add(item + i);
-                    } catch (ArrayIndexOutOfBoundsException e) {}
-                }
-            } else {
-                for (int i : directions) {
-                    try {
-                        if (gameModel.getPlayField()[item + i] == 0) check.add(item + i);
-                    } catch (ArrayIndexOutOfBoundsException e) {}
-                }
-            }
+            if (item % 8 == 0) check.addAll(getPossibleDirs(item, rightDir));
+            else if (item + 1 % 8 == 0) check.addAll(getPossibleDirs(item, leftDir));
+            else check.addAll(getPossibleDirs(item, directions));
         }
         possMoves.addAll(check);
         return check;
+    }
+
+    public Set getPossibleDirs(int item, int[] dir) {
+        Set possibilities = new HashSet();
+        for (int i : dir) {
+            try {
+                if (gameModel.getPlayField()[item + i] == 0) possibilities.add(item + i);
+            } catch (ArrayIndexOutOfBoundsException e) {}
+        }
+        return possibilities;
     }
 
     private List checkDir(int dir, int current) {
@@ -166,53 +127,13 @@ public class ReversiController extends SimpleGameController {
         return new ArrayList();
     }
 
-    public void updateGame() {
-        super.updateGame();
-
-        if (gameModel.isYourTurn()) {
-            Platform.runLater(() -> {
-                getPossibleList();
-                    for (int i = 0; i < possMoves.size(); i++) {
-                    List toChange = getMovesList(possMoves.get(i));
-                    if (!toChange.isEmpty()) {
-                        ClientCommands.sendMove(possMoves.get(i));
-                        updateGameState(possMoves.get(i), toChange);
-                        gameView.setTurn(gameModel.getOpponent());
-                        gameModel.setYourTurn(false);
-                        break;
-                        //setOnClick(possMoves.get(i), toChange);
-                    }
-                }
-                check.clear();
-                possMoves.clear();
-            });
-        }
+    public void doTurn (int i, List toChange) {
+        gameModel.updatePlayField(i);
+        gameModel.updatePlayField(toChange);
+        gameModel.incrementTurn();
+        occupied.add(i);
+        updateGame();
     }
-
-    public void setHasHMap(int index, List toChange) {
-        save.put(index, toChange);
-    }
-
-    public void updateGameAI() {
-        super.updateGame();
-        System.out.println("My turn");
-        if (gameModel.isYourTurn()) {
-            Platform.runLater(() -> {
-                getPossibleList();
-
-                for (int i = 0; i < possMoves.size(); i++) {
-                    List toChange = getMovesList(possMoves.get(i));
-                    if (!toChange.isEmpty()) {
-                        //setOnClick(possMoves.get(i), toChange);
-                        setHasHMap(possMoves.get(i), toChange);
-                    }
-                }
-                check.clear();
-                possMoves.clear();
-            });
-        }
-    }
-
 
     class MoveListener implements Runnable {
         boolean running = true;
@@ -220,22 +141,38 @@ public class ReversiController extends SimpleGameController {
         @Override
         public void run() {
             while(running) {
-                if (!Client.getInstance().getMoves().empty()) {
+                if (Client.getInstance().getMoves().size() > 0) {
                     HashMap info = Parser.parse(Client.getInstance().getMoves());
-                    System.out.println("New Move");
-                    System.out.println(info);
-                    System.out.println("==================");
-                    if (!info.get("PLAYER").equals(Player.getInstance().getName())) {
-                        Platform.runLater(() -> {
-                            int index = Integer.valueOf((String) info.get("MOVE"));
-                            updateGameState(index, getMoveReceivesList(index));
-                        });
-                    }
+                    System.out.println("------------------------------------------------------------");
+                    System.out.println("Player:  " + info.get("PLAYER"));
+                    System.out.println("Move:    " + info.get("MOVE"));
+                    System.out.println("Details: " + info.get("DETAILS"));
+                    System.out.println("------------------------------------------------------------");
+                    Platform.runLater(() -> {
+                        int index = Integer.valueOf((String) info.get("MOVE"));
+                        doTurn(index, getMoveReceivesList(index));
+                    });
                 }
-            }
-            if (Client.getInstance().getScore().size() > 0) {
-                getScore();
-                running = false;
+
+                if (Client.getInstance().getTurns().size() > 0) {
+                    Set possibleMoves = getPossibleList();
+                    for (Iterator it = possibleMoves.iterator(); it.hasNext(); ) {
+                        int move = (int) it.next();
+                        List moveResult = getMovesList(move);
+                        if (!moveResult.isEmpty()) {
+                            Platform.runLater(() -> {
+                                setOnClick(move);
+                            });
+                        }
+                    }
+                    gameModel.setYourTurn(true);
+                    Client.getInstance().getTurns().removeLast();
+                }
+
+                if (Client.getInstance().getScore().size() > 0) {
+                    getScore();
+                    running = false;
+                }
             }
         }
     }
